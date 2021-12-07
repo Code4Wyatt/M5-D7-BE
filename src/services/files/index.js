@@ -106,7 +106,7 @@ filesRouter.patch("/:id/title", async (req, res, next) => {
       title: req.body.title,
     };
 
-    await writeFiles(files[index]);
+    await writeFiles(files);
 
     res.send(files[index]);
   } catch (error) {}
