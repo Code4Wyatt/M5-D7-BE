@@ -32,7 +32,7 @@ filesRouter.post("/", uploader, async (req, res, next) => {
     try {
         console.log("BODY: ", req.body)
 
-        const newFile = { ...req.file, createdAt: new Date(), id: uniqid() }
+        const newFile = { ...req.file, title: req.body.title, createdAt: new Date(), id: uniqid(), isStarred: false }
         
         console.log(newFile)
 
@@ -47,5 +47,34 @@ filesRouter.post("/", uploader, async (req, res, next) => {
         next(error)
     }
 })
+
+filesRouter.get("/", async (req, res, next) => {
+    try {
+        const files = await getFiles()
+
+        res.send(files)
+    } catch (error) {
+        next(error)
+    }
+})
+
+filesRouter.patch("/:id/isStarred", async (req, res, next) => {
+    try {
+        const files = await getFiles()
+
+        const index = files.findIndex(file => file.id === req.params.id)
+
+        const isStarred = files[index].isStarred
+
+        files[index]= {...files[index], updatedAt: new Date(), isStarred: !isStarred}
+
+        await writeFiles(files)
+
+        res.send(files[index])
+    } catch (error) {
+        next(error)
+    }
+})
+
 
 export default filesRouter
