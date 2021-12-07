@@ -113,7 +113,9 @@ filesRouter.patch("/:id/title", async (req, res, next) => {
 });
 
 filesRouter.delete("/:id", async (req, res, next) => {
-    cloudinary.uploader.destroy(':id', function(result) { console.log(result) });
+    cloudinary.uploader.destroy('otn7omlaw8qtiudmifbh', function (result) { res.send(result) });
+
+    
 })
 
 export default filesRouter;
