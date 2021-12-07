@@ -12,5 +12,7 @@ console.log("Project foot folder: ", process.cwd())
 
 const filesJSONPath = join(dataFolderPath, "files.json")
 
-export const getFiles = () => readJSON(booksJSONPath)
-export const writeFiles = content => writeJSON(booksJSONPath, content)
+export const getFiles = () => readJSON(filesJSONPath)
+export const writeFiles = content => writeJSON(filesJSONPath, content)
+
+export const saveFileImages = (fileName, contentAsABuffer) => writeFile(join(filesPublicFolderPath, fileName), contentAsABuffer)

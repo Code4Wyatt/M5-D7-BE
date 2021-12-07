@@ -1,48 +1,51 @@
 import express from "express"
-import listEndpoints from "express-list-endpoints"
-import cors from "cors"
-import { join } from "path"
+import uniqid from "uniqid"
+import multer from "multer"
+import createHttpError from "http-errors"
+import { saveFileImages, getFiles, writeFiles } from "../../lib/fs-tools.js"
+import { v2 as cloudinary } from 'cloudinary'
+import { CloudinaryStorage } from 'multer-storage-cloudinary'
+import { validationResult } from "express-validator"
 
-import filesRouter from "./services/files/index.js"
+const filesRouter = express.Router()
 
-import { genericErrorHandler, badRequestHandler, unauthorizedHandler, notFoundHandler } from "./errorHandlers.js"
-
-const server = express()
-
-const port = process.env.PORT
-
-const publicFolderPath = join(process.cwd(), "./public")
-
-server.use(express.static(publicFolderPath))
-server.use(loggerMiddleware)
-
-const whiteList = [process.env.FE_LOCAL_URL, process.env.FE_REMOTE_URL]
-
-const corsOptions = {
-    origin: function (origin, next) {
-        console.log("ORIGIN: ", origin)
-        if (!origin || whiteList.indexOf(origin) !== -1) {
-            next(null, true)
-        } else {
-            next(new Error("Cors Error"))
-        }
+const storage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder: 'strivebox'
     }
-}
-
-server.use(cors(corsOptions))
-server.use(express.json())
-
-
-server.use("/files", filesRouter)
-
-
-server.use(badRequestHandler)
-server.use(genericErrorHandler)
-server.use(unauthorizedHandler)
-server.use(notFoundHandler)
-
-console.table(listEndpoints(server))
-
-server.listen(port, () => {
-    console.log(`Server running on port ${port}`)
 })
+
+const uploader = multer({
+    // fileFilter: (req, file, multerNext) => {
+    //     if (file.mimetype !== "image/gif") {
+    //         multerNext(createHttpError(400, "Only .gif files are allowed"))
+    //     } else {
+    //         multerNext(null, true)
+    //     }
+    // },
+    storage
+}).single("fileImage")
+
+
+filesRouter.post("/", uploader, async (req, res, next) => {
+    try {
+        console.log("BODY: ", req.body)
+
+        const newFile = { ...req.file, createdAt: new Date(), id: uniqid() }
+        
+        console.log(newFile)
+
+        const files = await getFiles()
+
+        files.push(newFile)
+        console.log(req.file)
+        await writeFiles(files)
+
+        res.status(201).send(`File uploaded!`)
+    } catch (error) {
+        next(error)
+    }
+})
+
+export default filesRouter
