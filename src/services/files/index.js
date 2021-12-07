@@ -18,13 +18,13 @@ const storage = new CloudinaryStorage({
 });
 
 const uploader = multer({
-  // fileFilter: (req, file, multerNext) => {
-  //     if (file.mimetype !== "image/gif") {
-  //         multerNext(createHttpError(400, "Only .gif files are allowed"))
-  //     } else {
-  //         multerNext(null, true)
-  //     }
-  // },
+  fileFilter: (req, file, multerNext) => {
+      if (file.mimetype !== "image/jpeg") {
+          multerNext(createHttpError(400, "Only .jpeg files are allowed"))
+      } else {
+          multerNext(null, true)
+      }
+  },
   storage,
 }).single("fileImage");
 
@@ -113,7 +113,19 @@ filesRouter.patch("/:id/title", async (req, res, next) => {
 });
 
 filesRouter.delete("/:id", async (req, res, next) => {
-    cloudinary.uploader.destroy('otn7omlaw8qtiudmifbh', function (result) { res.send(result) });
+    try {
+        const files = getFiles();
+        const remainingFiles = files.filter(file => file.id === req.params.id);
+        
+        writeFiles(remainingFiles);
+        
+        res.status(204).send();
+    
+    } catch (error) {
+          next(error)
+    }
+    
+    // cloudinary.uploader.destroy('otn7omlaw8qtiudmifbh', function (result) { res.send(result) });
 
     
 })
